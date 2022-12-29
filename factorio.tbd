@@ -1,0 +1,27 @@
+import "factorio"
+
+struct Display {
+  Rows [8]Row
+}
+
+struct Row {
+  Lamps [8]factorio.Lamp
+}
+
+func row.Set(val uint8) {
+  for i := 0; i < 8; i++ {
+    row.Lamps[i].Enabled = val & (1 << 8) > 0 
+  }
+}
+
+
+/*
+1. Init i
+2. 
+
+-_--
+--_-
+3
+
+ */
+

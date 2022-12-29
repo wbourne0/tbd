@@ -1,0 +1,42 @@
+
+
+enum Color {
+  Red
+  Green
+  Bluew
+  Yellow
+  Purple
+  Cyan
+  White
+  Grey
+  Black
+}
+
+public struct Lamp {
+  Color Color
+  Enabled bool
+}
+
+
+struct Cell {
+  value int32 // hi
+  init  int32
+}
+
+public func *Cell.Get() int32 {
+  return this.value;
+}
+
+public func *Cell.Set(value int32) {
+  this.value = value;
+}
+
+
+// Maybe not do this?
+public func *Cell.Init() {
+  this.value = this.init;
+}
+
+func DoSmthn(a, b uint32) uint32 {
+  return a + b;
+}

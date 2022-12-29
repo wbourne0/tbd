@@ -1,0 +1,127 @@
+ADD:
+  string: "+"
+  unary: true
+  assignment: true
+  precedence: 12
+SUB:
+  string: "-"
+  unary: true
+  assignment: true
+  precedence: 12
+MUL:
+  string: "*"
+  assignment: true
+  precedence: 13
+QUO:
+  string: "/"
+  assignment: true
+  precedence: 13
+REM:
+  string: "%"
+  assignment: true
+  precedence: 13
+AND:
+  string: "&"
+  assignment: true
+  precedence: 8
+OR:
+  string: "|"
+  assignment: true
+  precedence: 6
+XOR:
+  string: "^"
+  assignment: true
+  precedence: 7
+LEFT_SHIFT:
+  string: "<<"
+  assignment: true
+  precedence: 11
+RIGHT_SHIFT:
+  string: ">>"
+  assignment: true
+  precedence: 11
+BOOLEAN_AND:
+  string: "&&"
+  assignment: false
+  precedence: 5
+BOOLEAN_OR:
+  string: "||"
+  assignment: false
+  precedence: 4
+INCR:
+  string: "++"
+  unary: true
+  assignment: false
+  precedence: 15
+DECR:
+  string: "--"
+  unary: true
+  assignment: false
+  precedence: 15
+EQL:
+  string: "=="
+  assignment: false
+  precedence: 9
+LESS:
+  string: "<"
+  assignment: false
+  precedence: 10
+GREATER:
+  string: ">"
+  assignment: false
+  precedence: 10
+ASSIGN:
+  string: "="
+  assignment: false
+  precedence: 2
+NOT:
+  string: "!"
+  assignment: false
+  precedence: 14
+NOT_EQL:
+  string: "!="
+  assignment: false
+  precedence:
+LESS_EQL:
+  string: "<="
+  assignment: false
+  precedence:
+GREATER_EQL:
+  string: ">="
+  assignment: false
+OPAREN:
+  string: "("
+  assignment: false
+  precedence:
+OBRACK:
+  string: "["
+  assignment: false
+  precedence:
+OBRACE:
+  string: "{"
+  assignment: false
+  precedence:
+COMMA:
+  string: ","
+  assignment: false
+  precedence:
+PERIOD:
+  string: "."
+  assignment: false
+  precedence:
+CPAREN:
+  string: ")"
+  assignment: false
+  precedence:
+CBRACK:
+  string: "]"
+  assignment: false
+  precedence:
+CBRACE:
+  string: "}"
+  assignment: false
+  precedence:
+SEMICOLON:
+  string: ";"
+  assignment: false
+  precedence:

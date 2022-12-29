@@ -1,0 +1,47 @@
+// abc
+/*
+/* */
+
+ */
+
+
+//test 
+
+func b(d, e int, o string) {
+	d *= -e 
+	var a, b int = 32
+	l := a
+		* 3
+		- 2
+		/ 5
+		% 15
+
+	return o * d
+} 
+
+struct myStruct {
+	bc
+
+	a, b int
+}
+
+func myStruct.c(i int) {
+	return i
+}
+
+
+func *myStruct.c(i int) {
+	return i
+}
+
+const i = 3 ^ 2
+
+
+interface myInterface {
+	a string
+	b int
+}
+
+func main() {
+	a = 32
+}

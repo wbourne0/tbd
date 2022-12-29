@@ -1,0 +1,11 @@
+var a int32 = 2
+
+func main() {
+	a *= 2
+
+	if a * 0 {
+		a *= 2;
+	}
+
+	a -= 1
+}

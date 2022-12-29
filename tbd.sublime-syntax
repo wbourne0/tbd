@@ -1,0 +1,408 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/syntax.html
+file_extensions:
+  - tbd
+scope: source.tbd
+variables:
+  keyword: \b(?:break|case|chan|const|continue|default|defer|else|for|func|goto|if|import|interface|map|package|range|return|select|struct|switch|var|public)\b
+
+  ident: \b(?!{{keyword}})[[:alpha:]_][[:alnum:]_]*\b
+
+  binary_operators: '(==|[<>]=|\|\|?|[|&<>]{1,2}|[+-*/%])'
+  noise: (?:\s|{{inline_comment}})*
+  # Single line only
+  inline_comment: /[*](?:[^*]|[*](?!/))*[*]/
+
+contexts:
+  main:
+    - include: match-keyword-var
+    - include: match-keyword-interface
+    - include: match-keyword-struct
+    - include: match-keyword-func
+    - include: match-comments
+    - include: match-identifier
+    - include: match-operators
+    - match: \(
+      push: match-parenthesis
+    - match: '{{keyword}}'
+      scope: keyword.tbd
+    # - match:
+    - match: '[()]'
+      scope: invalid.illegal.stray-bracket
+
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character
+    - match: '"'
+      scope: punctuation.definition.string.begin.tbd
+      push: match-string-basic
+
+    # Comments begin with a '//' and finish at the end of the line
+    - match: '//'
+      scope: punctuation.definition.comment.tbd
+      push: line_comment
+
+    # Keywords are if, else for and while.
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+    - match: '\b(if|else|for)\b'
+      scope: keyword.control.tbd
+
+    # Numbers
+    - match: '\b(-)?[0-9.]+\b'
+      scope: constant.numeric.tbd
+
+
+  match-identifier:
+    - match: '\b{{ident}}\b'
+      scope: variable.other.tbd
+
+  match-operators:
+    - match: '<<=|>>=|&\^=|&=|\^=|\|=|%=|\+=|-=|\*=|/=|\+\+|--'
+      scope: keyword.operator.assignment.augmented.tbd
+    - match: '&&|\|\||!'
+      scope: keyword.operator.logical.tbd
+    - match: ':='
+      scope: keyword.operator.assignment.tbd
+    - match: '<<|>>|&\^'
+      scope: keyword.operator.bitwise.tbd
+    - match: '[|&^]'
+      scope: keyword.operator.bitwise.tbd
+    - match: '&&|\|\|!'
+      scope: keyword.operator.logical.tbd
+    - match: '==|!=|<=|>=|<|>'
+      scope: keyword.operator.comparison.tbd
+    - match: '='
+      scope: keyword.operator.assignment.tbd
+    - match: '[-+/%]'
+      scope: keyword.operator.arithmetic.tbd
+    - match: '(\*)\b'
+      scope: keyword.operator.arithmetic.tbd
+    - match: '(\&)\b'
+      scope: keyword.operator.bitwise.tbd
+    - match: '[*&]'
+      scope: keyword.operator.tbd
+
+  match-star:
+    - match: \*
+      scope: keyword.operator.go
+
+  match-comma:
+    - match: \,
+      scope: punctuation.separator.go
+
+  match-ellipsis:
+    - match: \.\.\.
+      scope: keyword.operator.variadic.go
+
+  match-colon:
+    - match: ':'
+      scope: punctuation.separator.go
+
+  match-semicolon:
+    - match: ;
+      scope: punctuation.terminator.go
+
+  pop-function-name:
+    - include: match-star
+    - match: '{{noise}}{{ident}}{{noise}}(?=\.)'
+      scope: entity.name.type.tbd storage.type.tbd
+    - match: '{{ident}}'
+      scope: entity.name.function.tbd
+      # pop: true
+    - match: (?=\()
+      set: pop-func-parameter-and-return-lists
+      # push: function-params: 
+      # 
+  pop-func-parameter-and-return-lists:
+    - include: match-comments
+    - match: (?=\()
+      set: [pop-func-return-signature, pop-func-parameter-list]
+    - include: pop-before-nonblank
+
+  pop-func-return-signature:
+    - include: pop-on-terminator
+    - include: match-comments
+    - match: (?=\()
+      set: pop-func-parameter-list
+    - match: (?=\S)
+      set: pop-type  
+
+
+  match-keyword-func:
+    - match: '\bfunc\b'
+      scope: keyword.tbd
+      push: pop-function-name
+
+  pop-func-parameter-list:
+    - include: match-comments
+    - match: \(
+      scope: punctuation.section.parens.begin.go
+      set:
+        - include: match-comments
+        - match: |
+            (?x)
+            (?=
+              (?:{{noise}}{{ident}}{{noise}},{{noise}})*
+              {{ident}}{{noise}}(?:\.\.\.|[^\s/,).])
+            )
+          set: pop-parameter-list-named
+        - match: (?=\S)
+          set: pop-parameter-list-unnamed
+    - include: pop-before-nonblank
+
+  pop-parameter-list-named:
+    - match: \)
+      scope: punctuation.section.parens.end.go
+      pop: true
+    - include: match-comments
+    - include: match-keywords
+    - include: match-comma
+    - include: match-ellipsis
+    - match: \b_\b
+      scope: variable.language.anonymous.go
+      push: pop-parameter-type
+    - match: '{{ident}}'
+      scope: variable.parameter.go
+      push: pop-parameter-type
+
+  pop-parameter-type:
+    - match: (?=\)|,)
+      pop: true
+    - include: match-ellipsis
+    - include: pop-type
+
+  pop-parameter-list-unnamed:
+    - match: \)
+      scope: punctuation.section.parens.end.go
+      pop: true
+    - include: match-comments
+    - include: match-keywords
+    - include: match-comma
+    - include: match-ellipsis
+    - match: (?=\S)
+      push: pop-type
+
+  match-keyword-var:
+    - match: '\bvar\b'
+      scope: keyword.tbd
+      push:
+        - include: match-comments
+        - include: match-comma
+
+        - match: '{{ident}}(?={{noise}},)'
+          scope: variable.other.readwrite.declaration.go
+
+        - match: '{{ident}}'
+          scope: variable.other.readwrite.declaration.go
+          set: pop-var-type-and-or-assignment
+
+        - include: pop-before-nonblank
+
+  pop-var-type-and-or-assignment:
+    - include: pop-on-terminator
+    - include: match-comments
+    - match: =
+      scope: keyword.operator.assignment.go
+      set: pop-var-expressions
+    - match: (?=\S)
+      set: [pop-var-assignment-or-terminate, pop-type]
+
+  pop-var-assignment-or-terminate:
+    - include: pop-on-terminator
+    - include: match-comments
+    - match: =
+      scope: keyword.operator.assignment.go
+      # set: pop-var-expressions
+      pop: true
+    - include: pop-before-nonblank
+
+  pop-before-nonblank:
+    - match: (?=\S)
+      pop: true
+
+  # function-params:
+  #   match
+
+  # match-keyword-func:
+    # - match: \bfunc\b
+    #   scope: keyword.declaration.function.go
+    #   push:
+    #     - include: match-comments
+
+    #     # Method
+    #     - match: (?=\({{noise}}[^)]+{{noise}}\){{noise}}{{ident}}{{noise}}\()
+    #       set:
+    #         - meta_scope: meta.function.declaration.go
+    #         - match: (?=[^(])
+    #           set:
+    #             - meta_scope: meta.function.declaration.go
+    #             - include: pop-func-signature
+    #         # Receiver list
+    #         - match: (?=\()
+    #           push: pop-func-parameter-list
+
+    #     # Named function
+    #     - match: (?={{ident}}{{noise}}\()
+    #       set: pop-func-signature
+
+    #     # Anonymous function
+    #     - include: pop-func-parameter-and-return-lists
+
+
+  # function-args:
+  
+  match-keyword-struct:
+    - match: \bstruct\b
+      scope: keyword.tbd
+      push: pop-type-definition
+
+  match-keyword-interface:
+    - match: \binterface\b
+      scope: keyword.tbd
+      push: pop-type-definition
+
+  pop-type-definition:
+    - include: match-comments
+    - match: '{{ident}}'
+      scope: entity.name.type.tbd
+    - match: \{
+      scope: punctuation.section.braces.begin.tbd
+      set: 
+        - meta_scope: meta.type.tbd
+        - include: match-comments
+        - include: match-type-member
+        - match: \}
+          scope: punctuation.section.braces.end.tbd
+          pop: true
+
+    
+  match-type-member:
+    # - include: pop
+    - include: match-comments
+    - match: '{{ident}}(?={{noise}},)'
+      scope: variable.other.member.declaration.tbd
+    - match: \.
+      scope: punctuation.accessor.dot.go
+    - match: '{{ident}}(?={{noise}}(?:"|`|//|;|\}|$))'
+      scope: entity.other.inherited-class.go
+    - include: match-named-type-member
+
+
+  match-named-type-member:
+    - include: match-comments
+    - match: \}
+      scope: punctuation.section.braces.end.tbd
+      pop: true
+    - include: pop-declaration
+
+
+  pop-var-expressions:
+    - include: pop-on-semicolon
+    - include: match-comments
+    - match: (?=\S)
+      set:
+        - include: pop-on-terminator
+        - include: main
+
+  
+  pop-declaration:
+    - include: match-comments
+    - match: '{{ident}}(?={{noise}}(?:,))'
+      scope: variable.other.member.declaration.tbd
+    - match: '{{ident}}'
+      scope: variable.other.member.declaration.tbd
+      push: pop-var-type-and-or-assignment
+
+
+  pop-type:
+    - include: match-comments
+    # - match: \
+    - match: '{{ident}}(?={{noise}}\.)'
+      scope: variable.other.tbd
+    - match: \.
+      scope: punctuation.accessor.dot.tbd
+
+    - include: pop-type-identifier
+    - include: pop-before-nonblank
+
+  pop-type-identifier:
+    # - match: '{{predeclared_type}}'
+    #   scope: storage.type.go support.type.builtin.go
+    #   pop: true
+    - match: '{{ident}}'
+      scope: storage.type.go
+      pop: true
+
+  match-string-basic:
+    - meta_scope: string.quoted.double.tbd
+    - match: '\\.'
+      scope: constant.character.escape.tbd
+    - match: '"'
+      scope: punctuation.definition.string.end.tbd
+      pop: true
+
+
+  # pop-parameter-type:
+  #   - match: (?=\)|,)
+  #     pop: true
+  #   - include: match-ellipsis
+  #   - include: pop-type
+
+  # pop-parameter-list-unnamed:
+  #   - match: \)
+  #     scope: punctuation.section.parens.end.go
+  #     pop: true
+  #   - include: match-comments
+  #   - include: match-keywords
+  #   - include: match-comma
+  #   - include: match-ellipsis
+  #   - match: (?=\S)
+  #     push: pop-type
+  
+  pop-on-semicolon:
+    - match: ;
+      scope: punctuation.terminator.go
+      pop: true
+
+  pop-on-terminator:
+    - include: pop-on-semicolon
+    - match: $
+      pop: true
+
+  match-comments:
+    - match: //
+      scope: punctuation.definition.comment.tbd
+      push: pop-inline-comment
+    - include: match-multiline-comment
+    
+
+  match-multiline-comment:
+    - match: /\*
+      push: pop-multiline-comment
+      scope: punctuation.definition.comment.start.tbd
+
+  pop-inline-comment:
+    - meta_scope: comment.line.tbd
+    - match: $
+      pop: true
+
+  pop-multiline-comment:
+    - meta_scope: comment.block.tbd
+    - include: match-multiline-comment
+    - match: \*/
+      scope: punctuation.definition.comment.end.tbd
+      pop: true 
+
+
+  line_comment:
+    - meta_scope: comment.line.tbd
+    - match: $
+      pop: true
+
+  match-parenthesis:
+    - match: \)
+      pop: true
+    - include: main 
